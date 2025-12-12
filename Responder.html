@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responder Encuesta</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+            background-color: #1a02020a;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .question {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        .option {
+            display: block;
+            margin: 10px auto;
+            padding: 15px;
+            background-color: #010911;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s, border-color 0.3s;
+            max-width: 500px;
+        }
+        .option:hover {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        .option.correct {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .option.incorrect {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .option.disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #feedback {
+            margin-top: 15px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        #results {
+            display: none;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        #results h2 {
+            color: #333;
+        }
+        #score {
+            font-size: 20px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Responder Encuesta</h1>
+    
+    <div id="survey">
+        <div id="questionContainer"></div>
+        <div id="feedback"></div>
+        <button id="prevBtn" onclick="prevQuestion()" disabled>Anterior</button>
+        <button id="nextBtn" onclick="nextQuestion()">Siguiente</button>
+        <button id="submitBtn" onclick="submitSurvey()" style="display:none;">Enviar Respuestas</button>
+    </div>
+    
+    <div id="results">
+        <h2>Resultados</h2>
+        <p id="score"></p>
+        <button onclick="restartSurvey()">Responder de Nuevo</button>
+    </div>
+
+    <script>
+        let questions = JSON.parse(localStorage.getItem('questions')) || [];
+        let currentQuestionIndex = 0;
+        let answers = [];
+        let answered = []; // Para rastrear si la pregunta ya fue respondida
+        
+        if (questions.length === 0) {
+            document.getElementById('survey').innerHTML = '<p>No hay preguntas guardadas. Crea algunas en la página de creación.</p>';
+        } else {
+            displayQuestion();
+        }
+        
+        function displayQuestion() {
+            const q = questions[currentQuestionIndex];
+            const container = document.getElementById('questionContainer');
+            const feedback = document.getElementById('feedback');
+            feedback.textContent = ''; // Limpiar feedback anterior
+            
+            container.innerHTML = `
+                <div class="question">
+                    <h3>${currentQuestionIndex + 1}. ${q.question}</h3>
+                    ${q.options.map((opt, i) => {
+                        let className = 'option';
+                        if (answered[currentQuestionIndex]) {
+                            // Si ya respondió, mostrar colores
+                            if (i + 1 === q.correct) {
+                                className += ' correct';
+                            } else if (answers[currentQuestionIndex] === i + 1) {
+                                className += ' incorrect';
+                            } else {
+                                className += ' disabled';
+                            }
+                        }
+                        return `<button class="${className}" onclick="selectOption(${i + 1})" ${answered[currentQuestionIndex] ? 'disabled' : ''}>
+                            ${i + 1}. ${opt}
+                        </button>`;
+                    }).join('')}
+                </div>
+            `;
+            updateButtons();
+        }
+        
+        function selectOption(option) {
+            if (answered[currentQuestionIndex]) return; // Ya respondió
+            
+            const q = questions[currentQuestionIndex];
+            answers[currentQuestionIndex] = option;
+            answered[currentQuestionIndex] = true;
+            
+            const feedback = document.getElementById('feedback');
+            if (option === q.correct) {
+                feedback.textContent = '¡Correcto! ✅';
+                feedback.style.color = 'green';
+            } else {
+                feedback.textContent = `Incorrecto. La correcta es la opción ${q.correct}. ❌`;
+                feedback.style.color = 'red';
+            }
+            
+            displayQuestion(); // Actualizar colores
+        }
+        
+        function nextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                currentQuestionIndex++;
+                displayQuestion();
+            }
+        }
+        
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        }
+        
+        function updateButtons() {
+            document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+            document.getElementById('nextBtn').style.display = currentQuestionIndex === questions.length - 1 ? 'none' : 'inline';
+            document.getElementById('submitBtn').style.display = currentQuestionIndex === questions.length - 1 ? 'inline' : 'none';
+        }
+        
+        function submitSurvey() {
+            let correctCount = 0;
+            questions.forEach((q, i) => {
+                if (answers[i] === q.correct) correctCount++;
+            });
+            document.getElementById('score').innerHTML = `
+                Acertaste <strong>${correctCount}</strong> de <strong>${questions.length}</strong> preguntas.<br>
+                <span style="color: green;">Correctas: ${correctCount}</span> | 
+                <span style="color: red;">Incorrectas: ${questions.length - correctCount}</span>
+            `;
+            document.getElementById('survey').style.display = 'none';
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        function restartSurvey() {
+            answers = [];
+            answered = [];
+            currentQuestionIndex = 0;
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('survey').style.display = 'block';
+            displayQuestion();
+        }
+    </script>
+</body>
+</html>
