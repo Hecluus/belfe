@@ -92,7 +92,7 @@
             font-size: 20px;
             margin: 10px 0;
         }
-    </style>
+        </style>
 </head>
 <body>
     <h1>Responder Encuesta</h1>
@@ -110,7 +110,7 @@
         <p id="score"></p>
         <button onclick="restartSurvey()">Responder de Nuevo</button>
     </div>
-
+    
     <script>
         let questions = JSON.parse(localStorage.getItem('questions')) || [];
         let currentQuestionIndex = 0;
@@ -130,90 +130,91 @@
             feedback.textContent = ''; // Limpiar feedback anterior
             
             container.innerHTML = `
-                <div class="question">
-                    <h3>${currentQuestionIndex + 1}. ${q.question}</h3>
-                    ${q.options.map((opt, i) => {
-                        let className = 'option';
-                        if (answered[currentQuestionIndex]) {
-                            // Si ya respondió, mostrar colores
-                            if (i + 1 === q.correct) {
-                                className += ' correct';
-                            } else if (answers[currentQuestionIndex] === i + 1) {
-                                className += ' incorrect';
-                            } else {
-                                className += ' disabled';
-                            }
+            <div class="question">
+                <h3>${currentQuestionIndex + 1}. ${q.question}</h3>
+                ${q.options.map((opt, i) => {
+                    let className = 'option';
+                    if (answered[currentQuestionIndex]) {
+                        // Si ya respondió, mostrar colores
+                        if (i + 1 === q.correct) {
+                            className += ' correct';
+                        } else if (answers[currentQuestionIndex] === i + 1) {
+                            className += ' incorrect';
+                        } else {
+                            className += ' disabled';
                         }
-                        return `<button class="${className}" onclick="selectOption(${i + 1})" ${answered[currentQuestionIndex] ? 'disabled' : ''}>
-                            ${i + 1}. ${opt}
+                    }
+                    return `<button class="${className}" onclick="selectOption(${i + 1})" ${answered[currentQuestionIndex] ? 'disabled' : ''}>
+                        ${i + 1}. ${opt}
                         </button>`;
                     }).join('')}
-                </div>
-            `;
-            updateButtons();
-        }
-        
-        function selectOption(option) {
-            if (answered[currentQuestionIndex]) return; // Ya respondió
-            
-            const q = questions[currentQuestionIndex];
-            answers[currentQuestionIndex] = option;
-            answered[currentQuestionIndex] = true;
-            
-            const feedback = document.getElementById('feedback');
-            if (option === q.correct) {
-                feedback.textContent = '¡Correcto! ✅';
-                feedback.style.color = 'green';
-            } else {
-                feedback.textContent = `Incorrecto. La correcta es la opción ${q.correct}. ❌`;
-                feedback.style.color = 'red';
-            }
-            
-            displayQuestion(); // Actualizar colores
-        }
-        
-        function nextQuestion() {
-            if (currentQuestionIndex < questions.length - 1) {
-                currentQuestionIndex++;
-                displayQuestion();
-            }
-        }
-        
-        function prevQuestion() {
-            if (currentQuestionIndex > 0) {
-                currentQuestionIndex--;
-                displayQuestion();
-            }
-        }
-        
-        function updateButtons() {
-            document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
-            document.getElementById('nextBtn').style.display = currentQuestionIndex === questions.length - 1 ? 'none' : 'inline';
-            document.getElementById('submitBtn').style.display = currentQuestionIndex === questions.length - 1 ? 'inline' : 'none';
-        }
-        
-        function submitSurvey() {
-            let correctCount = 0;
-            questions.forEach((q, i) => {
-                if (answers[i] === q.correct) correctCount++;
-            });
-            document.getElementById('score').innerHTML = `
-                Acertaste <strong>${correctCount}</strong> de <strong>${questions.length}</strong> preguntas.<br>
-                <span style="color: green;">Correctas: ${correctCount}</span> | 
-                <span style="color: red;">Incorrectas: ${questions.length - correctCount}</span>
-            `;
-            document.getElementById('survey').style.display = 'none';
-            document.getElementById('results').style.display = 'block';
-        }
-        
-        function restartSurvey() {
-            answers = [];
-            answered = [];
-            currentQuestionIndex = 0;
-            document.getElementById('results').style.display = 'none';
-            document.getElementById('survey').style.display = 'block';
-            displayQuestion();
-        }
+                    </div>
+                    `;
+                    updateButtons();
+                }
+                
+                function selectOption(option) {
+                    if (answered[currentQuestionIndex]) return; // Ya respondió
+                    
+                    const q = questions[currentQuestionIndex];
+                    answers[currentQuestionIndex] = option;
+                    answered[currentQuestionIndex] = true;
+                    
+                    const feedback = document.getElementById('feedback');
+                    if (option === q.correct) {
+                        feedback.textContent = '¡Correcto! ✅';
+                        feedback.style.color = 'green';
+                    } else {
+                        feedback.textContent = `Incorrecto. La correcta es la opción ${q.correct}. ❌`;
+                        feedback.style.color = 'red';
+                    }
+                    
+                    displayQuestion(); // Actualizar colores
+                }
+                
+                function nextQuestion() {
+                    if (currentQuestionIndex < questions.length - 1) {
+                        currentQuestionIndex++;
+                        displayQuestion();
+                    }
+                }
+                
+                function prevQuestion() {
+                    if (currentQuestionIndex > 0) {
+                        currentQuestionIndex--;
+                        displayQuestion();
+                    }
+                }
+                
+                function updateButtons() {
+                    document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+                    document.getElementById('nextBtn').style.display = currentQuestionIndex === questions.length - 1 ? 'none' : 'inline';
+                    document.getElementById('submitBtn').style.display = currentQuestionIndex === questions.length - 1 ? 'inline' : 'none';
+                }
+                
+                function submitSurvey() {
+                    let correctCount = 0;
+                    questions.forEach((q, i) => {
+                        if (answers[i] === q.correct) correctCount++;
+                    });
+                    document.getElementById('score').innerHTML = `
+                    Acertaste <strong>${correctCount}</strong> de <strong>${questions.length}</strong> preguntas.<br>
+                    <span style="color: green;">Correctas: ${correctCount}</span> | 
+                    <span style="color: red;">Incorrectas: ${questions.length - correctCount}</span>
+                    `;
+                    document.getElementById('survey').style.display = 'none';
+                    document.getElementById('results').style.display = 'block';
+                }
+                
+                function restartSurvey() {
+                    answers = [];
+                    answered = [];
+                    currentQuestionIndex = 0;
+                    document.getElementById('results').style.display = 'none';
+                    document.getElementById('survey').style.display = 'block';
+                    displayQuestion();
+                }
     </script>
+<a href="./Generar preguntas.html">Generar preguntas</a>
 </body>
 </html>

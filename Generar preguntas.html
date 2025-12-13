@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Preguntas</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+        input, select, button { margin: 5px; padding: 8px; width: 300px; }
+        #savedQuestions { margin-top: 30px; text-align: left; display: inline-block; }
+        .questionItem { margin: 10px 0; padding: 10px; border: 1px solid #ddd; background-color: #fafafa; }
+        .questionItem button { margin-left: 10px; width: auto; }
+    </style>
+</head>
+<body>
+    <h1>Crear y Gestionar Preguntas</h1>
+    
+    <div id="form">
+        <p>Ingresa la pregunta:</p>
+        <input type="text" id="question" placeholder="Ej: ¿Cuál es la capital de Francia?">
+        
+        <p>Opción 1:</p>
+        <input type="text" id="opt1" placeholder="Ej: París">
+        
+        <p>Opción 2:</p>
+        <input type="text" id="opt2" placeholder="Ej: Madrid">
+        
+        <p>Opción 3:</p>
+        <input type="text" id="opt3" placeholder="Ej: Roma">
+        
+        <p>Opción 4:</p>
+        <input type="text" id="opt4" placeholder="Ej: Berlín">
+        
+        <p>¿Cuál es la respuesta correcta? (elige el número):</p>
+        <select id="correct">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+        </select>
+        
+        <br>
+        <button onclick="saveQuestion()">Guardar Pregunta</button>
+    </div>
+    
+    <div id="savedQuestions">
+        <h2>Preguntas Guardadas</h2>
+        <div id="questionList"></div>
+    </div>
+    <a href="/index.html">Responder preguntas</a>
+    <script>
+        let questions = JSON.parse(localStorage.getItem('questions')) || [];
+        displaySavedQuestions();
+
+        function saveQuestion() {
+            const question = document.getElementById('question').value.trim();
+            const opt1 = document.getElementById('opt1').value.trim();
+            const opt2 = document.getElementById('opt2').value.trim();
+            const opt3 = document.getElementById('opt3').value.trim();
+            const opt4 = document.getElementById('opt4').value.trim();
+            const correct = parseInt(document.getElementById('correct').value);
+            
+            if (!question || !opt1 || !opt2 || !opt3 || !opt4) {
+                alert('Por favor, llena todos los campos.');
+                return;
+            }
+            
+            const newQuestion = { question, options: [opt1, opt2, opt3, opt4], correct };
+            questions.push(newQuestion);
+            localStorage.setItem('questions', JSON.stringify(questions));
+            displaySavedQuestions();
+            alert('Pregunta guardada.');
+            // Limpiar campos
+            document.getElementById('question').value = '';
+            document.getElementById('opt1').value = '';
+            document.getElementById('opt2').value = '';
+            document.getElementById('opt3').value = '';
+            document.getElementById('opt4').value = '';
+            document.getElementById('correct').value = '1';
+        }
+        
+        function displaySavedQuestions() {
+            const listDiv = document.getElementById('questionList');
+            listDiv.innerHTML = '';
+            questions.forEach((q, index) => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'questionItem';
+                itemDiv.innerHTML = `
+                    <strong>${q.question}</strong><br>
+                    Opciones: ${q.options.join(', ')}<br>
+                    Correcta: ${q.correct}
+                    <button onclick="loadQuestion(${index})">Editar</button>
+                    <button onclick="deleteQuestion(${index})">Eliminar</button>
+                `;
+                listDiv.appendChild(itemDiv);
+            });
+        }
+        
+        function loadQuestion(index) {
+            const q = questions[index];
+            document.getElementById('question').value = q.question;
+            document.getElementById('opt1').value = q.options[0];
+            document.getElementById('opt2').value = q.options[1];
+            document.getElementById('opt3').value = q.options[2];
+            document.getElementById('opt4').value = q.options[3];
+            document.getElementById('correct').value = q.correct;
+        }
+        
+        function deleteQuestion(index) {
+            if (confirm('¿Eliminar esta pregunta?')) {
+                questions.splice(index, 1);
+                localStorage.setItem('questions', JSON.stringify(questions));
+                displaySavedQuestions();
+            }
+        }
+    </script>
+</body>
+</html>
